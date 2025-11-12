@@ -17,7 +17,7 @@ class MyHomePage extends StatelessWidget {
 
   final List<ItemHomepage> items = [
     ItemHomepage("See Football News", Icons.newspaper, Colors.blue),
-    ItemHomepage("My News", Icons.add, Colors.blue),
+    ItemHomepage("Add News", Icons.add, Colors.blue),
     ItemHomepage("Logout", Icons.logout, Colors.blue),
   ];
   @override
