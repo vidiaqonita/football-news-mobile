@@ -184,12 +184,18 @@ class NewsFormPageState extends State<NewsFormPage> {
                         ),
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            // TODO: Replace the URL with your app's URL
-                            // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
-                            // If you using chrome,  use URL http://localhost:8000
                             
-                            final response = await request.postJson(
+                            // *** PERUBAHAN KRITIS ADA DI SINI ***
+                            // Menggunakan request.post dan mengirim data JSON
+                            // Django harus merespons dengan JSON (lihat main/views.py yang sudah diperbaiki)
+                            
+                            final response = await request.post(
+                              // Menggunakan full URL tanpa BASE_URL karena sudah diatur di main.dart
                               "$BASE_URL/create-flutter/",
+                              // Body harus dalam format Map<String, dynamic> untuk request.post,
+                              // KARENA API Anda di Django membaca JSON dari request.body.
+                              // Menggunakan jsonEncode() adalah cara yang benar, dan pbp_django_auth 
+                              // akan mengatur header Content-Type: application/json secara otomatis.
                               jsonEncode({
                                 "title": _title,
                                 "content": _content,
@@ -198,8 +204,10 @@ class NewsFormPageState extends State<NewsFormPage> {
                                 "is_featured": _isFeatured,
                               }),
                             );
+                            
                             if (context.mounted) {
-                              if (response['status'] == 'success') {
+                              // Cek apakah ada 'status' di respons (yaitu respons JSON dari Django)
+                              if (response.containsKey('status') && response['status'] == 'success') {
                                 ScaffoldMessenger.of(context)
                                     .showSnackBar(const SnackBar(
                                   content: Text("News successfully saved!"),
@@ -210,9 +218,15 @@ class NewsFormPageState extends State<NewsFormPage> {
                                       builder: (context) => MyHomePage()),
                                 );
                               } else {
+                                // Tangani error 401 atau 500 JSON di sini
+                                String errorMessage = response.containsKey('message') 
+                                    ? response['message'] 
+                                    : "Failed to save news. Please check your authentication or server logs.";
+
                                 ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text("Something went wrong, please try again."),
+                                    .showSnackBar(SnackBar(
+                                  content: Text(errorMessage),
+                                  backgroundColor: Colors.red.shade700,
                                 ));
                               }
                             }
